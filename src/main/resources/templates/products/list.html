@@ -107,5 +107,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<footer class="container text-center mt-5 mb-4 text-muted">
+    <hr>
+    <p class="mb-1">학번: 2071162 / 성명: 박민재</p>
+    <p th:text="${'실습 수행: ' + #temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm:ss')}"></p>
+</footer>
 </body>
 </html>
