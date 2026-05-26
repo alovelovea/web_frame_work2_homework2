@@ -32,7 +32,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/signup",
                                  "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/products/add", "/products/*/delete").hasRole("ADMIN")
+                // 일반 유저(USER)가 진입할 때 403 예외를 터뜨릴 핵심 보안 경로 제어
+                .requestMatchers("/products/add", "/products/*/delete", "/products/*/edit").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/products").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -49,6 +50,7 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
+            // 💡 리다이렉트 핸들러를 제거하여 예외 발생 시 브라우저에 순수 403 응답이 바로 꽂히도록 처리
             .userDetailsService(userDetailsService);
 
         return http.build();
