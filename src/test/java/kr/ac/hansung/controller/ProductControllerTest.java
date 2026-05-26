@@ -7,6 +7,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
@@ -53,14 +56,19 @@ class ProductControllerTest {
     @WithMockUser(roles = "USER")
     @DisplayName("인증된 사용자 - 상품 목록 조회 성공 (200)")
     void listProducts_authenticated_returns200() throws Exception {
-        given(productService.findAll()).willReturn(List.of(
-            new Product("Spring Boot 4 교재", 35000, "실습서", 50)
-        ));
+        // [수정 포인트] 가짜 페이징용 Page 객체 생성 및 기존 findAll() 무력화 대체
+        List<Product> productList = List.of(new Product("Spring Boot 4 교재", 35000, "실습서", 50));
+        Page<Product> dummyPage = new PageImpl<>(productList);
+
+        // 정규화 루틴에 의해 keyword 없이 접근하므로 getProducts가 호출됩니다.
+        given(productService.getProducts(any(Pageable.class))).willReturn(dummyPage);
 
         mockMvc.perform(get("/products"))
             .andExpect(status().isOk())
             .andExpect(view().name("products/list"))
-            .andExpect(model().attributeExists("products"));
+            // [수정 포인트] model에 담기는 Attribute가 products -> productPage 로 바뀌었으므로 똑같이 변경
+            .andExpect(model().attributeExists("productPage"))
+            .andExpect(model().attributeExists("keyword"));
     }
 
     @Test
