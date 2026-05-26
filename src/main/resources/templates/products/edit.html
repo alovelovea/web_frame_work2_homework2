@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 수정 - HanSung</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { background: linear-gradient(90deg, #1a1a2e, #0f3460); }
+        .navbar-brand { font-weight: 800; color: #e94560 !important; font-size: 1.4rem; }
+        .card { border: none; border-radius: 12px; }
+        .card-header { background: #0f3460; color: white; border-radius: 12px 12px 0 0 !important; }
+        .form-label { font-weight: 600; color: #1a1a2e; }
+        .error-message { color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/home}">HanSung</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/products}">상품 목록</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container" style="max-width: 600px;">
+    <div class="card shadow-sm">
+        <div class="card-header py-3">
+            <h5 class="mb-0 fw-bold">상품 정보 수정</h5>
+        </div>
+        <div class="card-body p-4">
+            <form th:action="@{/products/{id}/edit(id=${productId})}" th:object="${productDto}" method="post">
+                <div class="mb-3">
+                    <label for="name" class="form-label">상품명</label>
+                    <input type="text" th:field="*{name}" class="form-control" th:errorclass="is-invalid">
+                    <div class="error-message" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="price" class="form-label">가격 (원)</label>
+                        <input type="number" th:field="*{price}" class="form-control" th:errorclass="is-invalid">
+                        <div class="error-message" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                    </div>
+                    <div class="col">
+                        <label for="stock" class="form-label">재고 수량</label>
+                        <input type="number" th:field="*{stock}" class="form-control" th:errorclass="is-invalid">
+                        <div class="error-message" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="description" class="form-label">상품 설명</label>
+                    <textarea th:field="*{description}" class="form-control" rows="4"></textarea>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a th:href="@{/products}" class="btn btn-light px-4">취소</a>
+                    <button type="submit" class="btn btn-danger px-4 fw-semibold" style="background-color: #e94560; border: none;">수정 완료</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer class="container text-center mt-5 mb-4 text-muted">
+    <hr>
+    <p class="mb-1">학번: 2071162 / 성명: 박민재</p>
+    <p th:text="${'실습 수행: ' + #temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm:ss')}"></p>
+</footer>
+</body>
+</html>

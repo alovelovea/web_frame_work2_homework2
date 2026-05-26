@@ -17,13 +17,11 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    // 교수님 힌트 필수 반영: 전체 목록 페이징 (findAll에 Pageable 전달)
     @Transactional(readOnly = true)
     public Page<Product> getProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
 
-    // 교수님 힌트 필수 반영: 키워드 검색 + 페이징
     @Transactional(readOnly = true)
     public Page<Product> searchProducts(String keyword, Pageable pageable) {
         return productRepository.findByNameContaining(keyword, pageable);
@@ -41,6 +39,21 @@ public class ProductService {
             dto.getName(), dto.getPrice(), dto.getDescription(), dto.getStock()
         );
         return productRepository.save(product);
+    }
+
+    // 교수님 요구사항: @Transactional 안에서 엔티티를 조회하여 변경하는 Dirty Checking 방식 수정 메서드
+    @Transactional
+    public Product updateProduct(Long id, ProductDto dto) {
+        Product product = productRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
+
+        product.setName(dto.getName());
+        product.setPrice(dto.getPrice());
+        product.setStock(dto.getStock());
+        if (dto.getDescription() != null) {
+            product.setDescription(dto.getDescription());
+        }
+        return product; // 별도의 save 호출 없이 더티 체킹으로 트랜잭션 종료 시 자동 UPDATE 쿼리 실행
     }
 
     @Transactional
