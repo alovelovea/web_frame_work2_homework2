@@ -1,11 +1,13 @@
 package kr.ac.hansung.service;
 
+import kr.ac.hansung.dto.PasswordChangeDto; // 새로 추가
 import kr.ac.hansung.dto.UserDto;
 import kr.ac.hansung.entity.Role;
 import kr.ac.hansung.entity.User;
 import kr.ac.hansung.repository.RoleRepository;
 import kr.ac.hansung.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException; // 새로 추가
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // --- 기존 회원가입 기능 (절대 삭제 금지) ---
     @Transactional
     public void signup(UserDto dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -37,5 +40,19 @@ public class UserService {
 
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    // --- 새로 추가할 비밀번호 변경 기능 ---
+    @Transactional
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(email));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다");
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        // userRepository.save(user); // @Transactional이 있어서 생략 가능
     }
 }
