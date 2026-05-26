@@ -1,5 +1,6 @@
 package kr.ac.hansung.controller;
 
+import jakarta.validation.Valid;
 import kr.ac.hansung.dto.ProductDto;
 import kr.ac.hansung.entity.Product;
 import kr.ac.hansung.service.ProductService;
@@ -9,7 +10,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/products")
@@ -18,7 +21,6 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // 교수님 힌트 필수 반영 버전의 list 메서드
     @GetMapping
     public String list(
             @RequestParam(required = false) String keyword,
@@ -26,23 +28,16 @@ public class ProductController {
             @RequestParam(defaultValue = "5") int size,
             Model model) {
         
-        // URL 파라미터로 페이지 요청 객체 생성 (id 기준 정렬)
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id"));
-
-        // 빈 문자열("")을 null로 정규화
         String normalizedKeyword = (keyword != null && !keyword.isBlank()) ? keyword : null;
 
         Page<Product> productPage;
-
         if (normalizedKeyword != null) {
-            // 검색어가 있으면 키워드로 검색
             productPage = productService.searchProducts(normalizedKeyword, pageRequest);
         } else {
-            // 검색어가 없으면 전체 목록 조회
             productPage = productService.getProducts(pageRequest);
         }
 
-        // 힌트 가이드의 화면 바인딩 명칭 일치화
         model.addAttribute("productPage", productPage);
         model.addAttribute("keyword", normalizedKeyword);
 
@@ -64,6 +59,37 @@ public class ProductController {
     @PostMapping
     public String save(@ModelAttribute ProductDto dto) {
         productService.save(dto);
+        return "redirect:/products";
+    }
+
+    // 교수님 요구사항: 상품 수정 폼 매핑 (기존 데이터 세팅)
+    @GetMapping("/{id}/edit")
+    public String editProductForm(@PathVariable Long id, Model model) {
+        Product product = productService.findById(id);
+        ProductDto dto = new ProductDto();
+        dto.setName(product.getName());
+        dto.setPrice(product.getPrice());
+        dto.setStock(product.getStock());
+        dto.setDescription(product.getDescription());
+
+        model.addAttribute("productDto", dto);
+        model.addAttribute("productId", id);
+        return "products/edit";
+    }
+
+    // 교수님 요구사항: 수정 데이터 처리 및 검증(@Valid), 플래시 메시지 연동
+    @PostMapping("/{id}/edit")
+    public String editProduct(@PathVariable Long id,
+                             @Valid @ModelAttribute ProductDto productDto,
+                             BindingResult bindingResult,
+                             Model model,
+                             RedirectAttributes ra) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("productId", id);
+            return "products/edit";
+        }
+        productService.updateProduct(id, productDto);
+        ra.addFlashAttribute("successMessage", "상품 정보가 성공적으로 수정되었습니다.");
         return "redirect:/products";
     }
 
